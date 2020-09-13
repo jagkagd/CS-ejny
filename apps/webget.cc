@@ -3,6 +3,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <sstream>
 
 using namespace std;
 
@@ -17,8 +18,21 @@ void get_URL(const string &host, const string &path) {
     // (not just one call to read() -- everything) until you reach
     // the "eof" (end of file).
 
-    cerr << "Function called: get_URL(" << host << ", " << path << ").\n";
-    cerr << "Warning: get_URL() has not been implemented yet.\n";
+    TCPSocket sock;
+    Address hostAddress(host, "http");
+    sock.connect(hostAddress);
+    ostringstream strFormat;
+    strFormat << "GET " << path << " HTTP/1.1\r\n" << "Host: " << host << "\r\n\r\n";
+    string sendMsg = strFormat.str();
+    sock.write(sendMsg);
+    sock.shutdown(SHUT_WR);
+
+    while(!sock.eof()){
+        cout << sock.read();
+    }
+
+    // cerr << "Function called: get_URL(" << host << ", " << path << ").\n";
+    // cerr << "Warning: get_URL() has not been implemented yet.\n";
 }
 
 int main(int argc, char *argv[]) {
