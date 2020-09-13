@@ -7,6 +7,7 @@
 #include <list>
 #include <string>
 #include <utility>
+#include <deque>
 
 //! \brief An in-order byte stream.
 
@@ -16,6 +17,11 @@
 class ByteStream {
   private:
     // Your code here -- add private members as necessary.
+    std::deque<char> _stream;
+    size_t _capacity;
+    bool _end_input;
+    size_t _bytes_written;
+    size_t _bytes_read;
 
     bool _error{};  //!< Flag indicating that the stream suffered an error.
 
