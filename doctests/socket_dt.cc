@@ -9,8 +9,10 @@
 #include <stdexcept>
 #include <sys/socket.h>
 #include <vector>
+#include <iostream>
 
 int main() {
+    std::cout << "socket_dt_test" << std::endl;
     try {
         {
 #include "socket_example_1.cc"

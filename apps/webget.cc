@@ -18,7 +18,7 @@ void get_URL(const string &host, const string &path) {
     // (not just one call to read() -- everything) until you reach
     // the "eof" (end of file).
 
-    TCPSocket sock;
+    TCPSocket sock{};
     Address hostAddress(host, "http");
     sock.connect(hostAddress);
     ostringstream strFormat;

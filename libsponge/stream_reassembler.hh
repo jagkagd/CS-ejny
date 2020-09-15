@@ -5,6 +5,12 @@
 
 #include <cstdint>
 #include <string>
+#include <algorithm>
+
+typedef struct {
+  size_t begin, end;
+  unique_ptr<ByteStream> bs;
+} ByteStreamSegment;
 
 //! \brief A class that assembles a series of excerpts from a byte stream (possibly out of order,
 //! possibly overlapping) into an in-order byte stream.
@@ -14,6 +20,7 @@ class StreamReassembler {
 
     ByteStream _output;  //!< The reassembled in-order byte stream
     size_t _capacity;    //!< The maximum number of bytes
+    std::list<ByteStreamSegment> _unused;
 
   public:
     //! \brief Construct a `StreamReassembler` that will store up to `capacity` bytes.
@@ -48,6 +55,9 @@ class StreamReassembler {
     //! \brief Is the internal state empty (other than the output stream)?
     //! \returns `true` if no substrings are waiting to be assembled
     bool empty() const;
+
+    pair<bool, size_t> searchIndexInStreams(size_t index) const;
+    void streamMerge(const string &data, size_t begin, size_t end, size_t beginNoAfter, size_t endNoAfter);
 };
 
 #endif  // SPONGE_LIBSPONGE_STREAM_REASSEMBLER_HH
