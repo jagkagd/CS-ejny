@@ -21,6 +21,10 @@ StreamReassembler::StreamReassembler(const size_t capacity)
 //! possibly out-of-order, from the logical stream, and assembles any newly
 //! contiguous substrings and writes them into the output stream in order.
 void StreamReassembler::push_substring(const string &data, const size_t index, const bool eof) {
+    if(eof){
+        _eof_index = index + data.length();
+    }
+    _eof |= eof;
     size_t beginIndex = index;
     size_t endIndex = index + data.length();
     pair<bool, size_t> beginIn = searchIndexInStreams(beginIndex);
@@ -28,12 +32,13 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
     if ((!beginIn.first) && (!endIn.first) && (beginIn.second == endIn.second)) {
         auto iter = _unused.cbegin();
         advance(iter, beginIn.second);
-        _unused.emplace(iter, beginIn.second, endIn.second, std::move(data));
+        _unused.emplace(iter, beginIndex, endIndex, std::move(data));
     } else if ((beginIn.first && endIn.first) && (beginIn.second == endIn.second)) {
     } else {
         streamMerge(data, beginIndex, endIndex, beginIn, endIn);
     }
-    if(eof && (_unused.cbegin()->end == endIndex)){
+    updateOutput();
+    if(_eof && (_eof_index == _current_end)){
         _output.end_input();
     }
     return;
@@ -51,7 +56,7 @@ pair<bool, size_t> StreamReassembler::searchIndexInStreams(size_t index) const {
         }
         cnt++;
     }
-    if (item->begin >= index) {
+    if (item->begin > index) {
         return make_pair(false, cnt);
     } else {
         return make_pair(true, cnt);
@@ -64,27 +69,37 @@ void StreamReassembler::streamMerge(const string &data, size_t begin, size_t end
     auto endSegment = _unused.begin();
     advance(endSegment, endAt.first?endAt.second:(endAt.second-1));
     ByteStreamSegment newStreamSegment{begin, end, ""};
+    int offset = begin - _current_end;
     if(beginAt.first){
-        newStreamSegment.byteStream.append(beginSegment->byteStream, 0, begin-beginSegment->begin);
+        if(beginAt.second == 0){
+            newStreamSegment.byteStream.append(beginSegment->byteStream, 0, (offset>0)?offset:0);
+        }else{
+            newStreamSegment.byteStream.append(beginSegment->byteStream, 0, begin-beginSegment->begin);
+        }
         newStreamSegment.begin = beginSegment->begin;
     }
-    newStreamSegment.byteStream.append(data);
+    if(beginAt.second == 0){
+        newStreamSegment.byteStream.append(data, (-offset>0)?(-offset):0, data.length()-(-offset));
+    }else{
+        newStreamSegment.byteStream.append(data);
+    }
     if(endAt.first){
-        newStreamSegment.byteStream.append(endSegment->byteStream, end, endSegment->end-end);
+        newStreamSegment.byteStream.append(endSegment->byteStream, end-endSegment->begin, endSegment->end-end);
         newStreamSegment.end = endSegment->end;
     }
-    beginSegment = _unused.insert(beginSegment, newStreamSegment);
-    _unused.erase(++beginSegment, endSegment);
-    updateOutput();
+    auto newBeginSegment = _unused.insert(beginSegment, newStreamSegment);
+    _unused.erase(++newBeginSegment, ++endSegment);
     return;
 }
 
 void StreamReassembler::updateOutput() {
-    size_t end = _unused.cbegin()->end;
+    auto item = _unused.begin();
+    size_t end = item->end;
     if(end > _current_end) {
-        _output.write(_unused.cbegin()->byteStream);
-        _current_end = end;
-        _unused.begin()->byteStream.clear();
+        size_t written = min<size_t>(_output.remaining_capacity(), item->byteStream.length());
+        _output.write(item->byteStream);
+        _current_end += written;
+        item->byteStream.erase(0, written);
     }
     return;
 }
@@ -92,7 +107,7 @@ void StreamReassembler::updateOutput() {
 size_t StreamReassembler::unassembled_bytes() const {
     size_t sum = 0;
     std::for_each(
-        _unused.begin()++, _unused.end(), [&](ByteStreamSegment stream) { sum += stream.end - stream.begin; });
+        ++_unused.begin(), _unused.end(), [&](ByteStreamSegment stream) { sum += stream.end - stream.begin; });
     return sum;
 }
 

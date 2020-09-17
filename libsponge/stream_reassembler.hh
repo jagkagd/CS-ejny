@@ -7,6 +7,7 @@
 #include <string>
 #include <algorithm>
 #include <utility>
+#include <limits>
 
 struct ByteStreamSegment {
   ByteStreamSegment(size_t _begin, size_t _end, std::string s): begin(_begin), end(_end), byteStream(s) {}
@@ -24,7 +25,12 @@ class StreamReassembler {
     ByteStream _output;  //!< The reassembled in-order byte stream
     size_t _capacity;    //!< The maximum number of bytes
     size_t _current_end{0};
-    std::list<ByteStreamSegment> _unused = {ByteStreamSegment{0, 0, ""}};
+    bool _eof{false};
+    size_t _eof_index{0};
+    std::list<ByteStreamSegment> _unused = {
+      ByteStreamSegment{0, 0, ""}, 
+      ByteStreamSegment{std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max(), ""}
+    };
 
   public:
     //! \brief Construct a `StreamReassembler` that will store up to `capacity` bytes.
