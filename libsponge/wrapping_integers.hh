@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <ostream>
+#include <iostream>
 
 //! \brief A 32-bit integer, expressed relative to an arbitrary initial sequence number (ISN)
 //! \note This is used to express TCP sequence numbers (seqno) and acknowledgment numbers (ackno)
@@ -51,6 +52,10 @@ inline bool operator==(WrappingInt32 a, WrappingInt32 b) { return a.raw_value() 
 
 //! \brief Whether the two integers are not equal.
 inline bool operator!=(WrappingInt32 a, WrappingInt32 b) { return !(a == b); }
+
+inline bool operator<(WrappingInt32 a, uint32_t b) { return a.raw_value() < b; }
+inline bool operator>=(WrappingInt32 a, WrappingInt32 b) { return a.raw_value() >= b.raw_value(); }
+inline bool operator<(WrappingInt32 a, WrappingInt32 b) { return a.raw_value() < b.raw_value(); }
 
 //! \brief Serializes the wrapping integer, `a`.
 inline std::ostream &operator<<(std::ostream &os, WrappingInt32 a) { return os << a.raw_value(); }
