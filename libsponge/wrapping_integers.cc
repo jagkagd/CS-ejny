@@ -31,18 +31,17 @@ WrappingInt32 wrap(uint64_t n, WrappingInt32 isn) {
 // int32: [    0, ...   2^31-1, -2^31, ..., -1, 0, ..., 2^31-1, -2^31, ...,     -1]
 // diff \in [-2^32+1, 2^32-1]
 // (cp-2^31, cp+2^31]
-// n >= wrap_cp && diff0 \in [0, 2^31) | [0, ... 2^31-1) return cp + diff
-// n >= wrap_cp && diff0 = 2^31 | -2^31 return cp + 2^31
-// n >= wrap_cp && diff0 \in (2^31, 2^32-1) | (-2^31, -1) && cp >= abs(diff) return cp - (2^32-diff0) = cp + diff
-// n >= wrap_cp && diff0 \in (2^31, 2^32-1) | (-2^31, -1) && cp < abs(diff) return cp + diff0 = cp + diff + 2^32
-// n <  wrap_cp && diff0 \in (-2^31, 0) | (-2^31, 0) && cp >= abs(diff) return cp + diff
-// n <  wrap_cp && diff0 \in (-2^31, 0) | (-2^31, 0) && cp < abs(diff) return cp + 2^32 + diff
-// n <  wrap_cp && diff0 \in (-2^32+1, -2^31) | (1, ..., 2^31-1) return cp + (diff0+2^32) = cp + diff
-// n <  wrap_cp && diff0 = -2^31 | -2^31 return cp + 2^31
+// n >= wrap_cp && diff0 \in [0, 2^31)        | [0, 2^31-1)                    return cp + diff
+// n >= wrap_cp && diff0 = 2^31               | -2^31                          return cp + 2^31
+// n >= wrap_cp && diff0 \in (2^31, 2^32-1)   | (-2^31, -1) && cp >= abs(diff) return cp - (2^32-diff0) = cp + diff
+// n >= wrap_cp && diff0 \in (2^31, 2^32-1)   | (-2^31, -1) && cp <  abs(diff) return cp + diff0 = cp + 2^32 + diff
+// n <  wrap_cp && diff0 \in (-2^31, 0)       | (-2^31,  0) && cp >= abs(diff) return cp + diff
+// n <  wrap_cp && diff0 \in (-2^31, 0)       | (-2^31,  0) && cp <  abs(diff) return cp + 2^32 + diff
+// n <  wrap_cp && diff0 \in (-2^32+1, -2^31) | (1, 2^31-1)                    return cp + (diff0+2^32) = cp + diff
+// n <  wrap_cp && diff0 = -2^31              | -2^31                          return cp + 2^31
 uint64_t unwrap(WrappingInt32 n, WrappingInt32 isn, uint64_t checkpoint) {
     WrappingInt32 wrap_cp = wrap(checkpoint, isn);
     int32_t diff = n - wrap_cp;
-    cout << "n: " << n << " wrap_cp: " << wrap_cp << " diff: " << diff << " cp: " << checkpoint << endl;
     if(diff == static_cast<int32_t>(1ul << 31)){
         return checkpoint + (1ul<<31);
     }
