@@ -42,7 +42,7 @@ WrappingInt32 wrap(uint64_t n, WrappingInt32 isn) {
 uint64_t unwrap(WrappingInt32 n, WrappingInt32 isn, uint64_t checkpoint) {
     WrappingInt32 wrap_cp = wrap(checkpoint, isn);
     int32_t diff = n - wrap_cp;
-    if(diff == static_cast<int32_t>(1ul << 31)){
+    if(diff == static_cast<int32_t>(1ul<<31)){
         return checkpoint + (1ul<<31);
     }
     if(diff < 0 && checkpoint < static_cast<uint64_t>(-diff)){

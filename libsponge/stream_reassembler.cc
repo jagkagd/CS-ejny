@@ -114,3 +114,7 @@ size_t StreamReassembler::unassembled_bytes() const {
 bool StreamReassembler::empty() const {
     return _unused.size() == 1;
 }
+
+size_t StreamReassembler::getLastSeq() const {
+    return _unused.cbegin()->end;
+}

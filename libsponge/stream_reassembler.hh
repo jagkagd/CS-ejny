@@ -69,6 +69,7 @@ class StreamReassembler {
     std::pair<bool, size_t> searchIndexInStreams(size_t index) const;
     void streamMerge(const std::string &data, size_t begin, size_t end, std::pair<bool, size_t> beginAt, std::pair<bool, size_t> endAt);
     void updateOutput();
+    size_t getLastSeq() const;
 };
 
 #endif  // SPONGE_LIBSPONGE_STREAM_REASSEMBLER_HH
