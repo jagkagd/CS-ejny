@@ -19,7 +19,8 @@ class TCPReceiver {
 
     //! The maximum number of bytes we'll store.
     size_t _capacity;
-    std::optional<WrappingInt32> _isn{nullopt};
+    std::optional<WrappingInt32> _isn{};
+    bool _fin_set{false};
 
   public:
     //! \brief Construct a TCP receiver

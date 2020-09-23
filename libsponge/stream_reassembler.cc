@@ -116,5 +116,6 @@ bool StreamReassembler::empty() const {
 }
 
 size_t StreamReassembler::getLastSeq() const {
-    return _unused.cbegin()->end;
+    // return _unused.cbegin()->end;
+    return _current_end;
 }
