@@ -9,12 +9,17 @@
 #include <functional>
 #include <queue>
 
+extern size_t getSegFlagNum(const TCPSegment& seg);
+
 class TCPSegmentInfo {
-  private:
-    TCPSegment& seg;
-    size_t abs_seqno;
   public:
-    TCPSegmentInfo(TCPSegment& seg, size_t _isn, size_t _checkpoint): seg(seg), abs_seqno(unwrap(seg.header().seqno, _isn, _checkpoint)) {}
+    TCPSegment _seg;
+    size_t abs_seqno;
+    size_t abs_end;
+    TCPSegmentInfo(TCPSegment &seg, WrappingInt32 _isn, size_t _checkpoint)
+        : _seg(seg)
+        , abs_seqno(unwrap(seg.header().seqno, _isn, _checkpoint))
+        , abs_end(abs_seqno + seg.length_in_sequence_space()) {}
 };
 
 //! \brief The "sender" part of a TCP implementation.
@@ -27,7 +32,6 @@ class TCPSender {
   private:
     //! our initial sequence number, the number for our SYN.
     WrappingInt32 _isn;
-    size_t _next_seqno;
 
     //! outbound queue of segments that the TCPSender wants sent
     std::queue<TCPSegment> _segments_out{};
@@ -35,7 +39,7 @@ class TCPSender {
     //! retransmission timer for the connection
     unsigned int _initial_retransmission_timeout;
     unsigned int _retransmission_timeout;
-    std::optional<unsigned int> _timeout{nullopt};
+    std::optional<unsigned int> _timeout{std::nullopt};
 
     //! outgoing stream of bytes that have not yet been sent
     ByteStream _stream;
@@ -46,7 +50,7 @@ class TCPSender {
     std::list<TCPSegmentInfo> _outgoing_segs{};
     size_t _outgoing_num{0};
 
-    size_t _received_window_size{1};
+    size_t _received_window_size{0};
 
   public:
     //! Initialize a TCPSender
@@ -104,7 +108,7 @@ class TCPSender {
     WrappingInt32 next_seqno() const { return wrap(_next_seqno, _isn); }
     //!@}
 
-    TCPSegmentInfo make_TCPSegmentInfo(TCPSegment& seg);
+    TCPSegmentInfo make_TCPSegmentInfo(TCPSegment &seg);
 };
 
 #endif  // SPONGE_LIBSPONGE_TCP_SENDER_HH
