@@ -20,6 +20,7 @@ class TCPConnection {
     //! for 10 * _cfg.rt_timeout milliseconds after both streams have ended,
     //! in case the remote TCPConnection doesn't know we've received its whole stream?
     bool _linger_after_streams_finish{true};
+    size_t _time_since_last_segment_received{0};
 
   public:
     //! \name "Input" interface for the writer
@@ -94,6 +95,17 @@ class TCPConnection {
     TCPConnection(const TCPConnection &other) = delete;
     TCPConnection &operator=(const TCPConnection &other) = delete;
     //!@}
+
+    TCPState::State getState() const {
+      for(
+        int stateEnum = static_cast<int>(TCPState::State::LISTEN); 
+        stateEnum != static_cast<int>(TCPState::State::RESET);
+        stateEnum++){
+        if(state() == TCPState(static_cast<TCPState::State>(stateEnum))){
+          return static_cast<TCPState::State>(stateEnum);
+        }
+      }
+    }
 };
 
 #endif  // SPONGE_LIBSPONGE_TCP_FACTORED_HH
