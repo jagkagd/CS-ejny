@@ -21,6 +21,7 @@ class TCPConnection {
     //! in case the remote TCPConnection doesn't know we've received its whole stream?
     bool _linger_after_streams_finish{true};
     size_t _time_since_last_segment_received{0};
+    bool _active{false};
 
   public:
     //! \name "Input" interface for the writer
@@ -97,15 +98,17 @@ class TCPConnection {
     //!@}
 
     TCPState::State getState() const {
-      for(
-        int stateEnum = static_cast<int>(TCPState::State::LISTEN); 
-        stateEnum != static_cast<int>(TCPState::State::RESET);
-        stateEnum++){
-        if(state() == TCPState(static_cast<TCPState::State>(stateEnum))){
-          return static_cast<TCPState::State>(stateEnum);
+        for (int stateEnum = static_cast<int>(TCPState::State::LISTEN);
+             stateEnum != static_cast<int>(TCPState::State::RESET);
+             stateEnum++) {
+            if (state() == TCPState(static_cast<TCPState::State>(stateEnum))) {
+                return static_cast<TCPState::State>(stateEnum);
+            }
         }
-      }
+        return TCPState::State::CLOSED;
     }
+    
+    void setRESET();
 };
 
 #endif  // SPONGE_LIBSPONGE_TCP_FACTORED_HH
